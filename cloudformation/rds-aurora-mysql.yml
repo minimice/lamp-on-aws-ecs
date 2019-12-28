@@ -1,0 +1,205 @@
+# aws --region us-east-1 cloudformation create-stack --stack-name rds-aurora-mysql --template-body file://rds-aurora-mysql.yml --capabilities CAPABILITY_NAMED_IAM
+# aws --region us-east-1 cloudformation update-stack --stack-name rds-aurora-mysql --template-body file://rds-aurora-mysql.yml --capabilities CAPABILITY_NAMED_IAM
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RDS Aurora MySQL cluster with 2 instances, one for failover purposes.
+Parameters:
+  StackName:
+    Type: String
+    Default: ecs-networking
+    Description: The name of the parent cluster stack that you created. Necessary
+                 to locate and reference resources created by that stack.    
+  DatabaseName:
+    Default: yoda
+    Description: The database name
+    Type: String
+
+  DatabaseInstanceType:
+    Default: db.t2.small
+    AllowedValues:
+      - db.t2.small
+      - db.t2.medium
+      - db.r4.large
+      - db.r4.xlarge
+      - db.r4.2xlarge
+      - db.r4.4xlarge
+      - db.r4.8xlarge
+      - db.r4.16xlarge
+    Description: "The instance type to use for the database. Pricing: https://aws.amazon.com/rds/aurora/pricing/"
+    Type: String
+  
+  DatabasePassword:
+    AllowedPattern: "[a-zA-Z0-9]+"
+    ConstraintDescription: must contain only alphanumeric characters. Must have length 8-41.
+    Description: The database admin account password. (Choose a secure password)
+    MaxLength: '41'
+    MinLength: '8'
+    NoEcho: 'true'
+    Type: String
+  
+  DatabaseUsername:
+    Default: "yoda"
+    AllowedPattern: "[a-zA-Z0-9]+"
+    ConstraintDescription: must contain only alphanumeric characters. Must have length 1-16
+    Description: The database admin account user name. (Default "yoda")
+    MaxLength: '16'
+    MinLength: '1'
+    Type: String
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Database Configuration
+        Parameters:
+          - DatabaseInstanceType
+          - DatabaseName
+          - DatabaseUsername
+          - DatabasePassword
+    ParameterLabels:
+      DatabaseName:
+        default: Database name
+      DatabaseInstanceType:
+        default: Database Instance Type
+      DatabasePassword:
+        default: Database Password
+      DatabaseUsername:
+        default: Database Username
+
+Resources:
+  StackAlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Stack Alarm Topic
+
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: CloudFormation managed DB subnet group.
+      SubnetIds:
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'PrivateSubnet1A']]
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'PrivateSubnet1B']]
+
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: Yoda DB parameter group 
+      Family: aurora-mysql5.7
+      Parameters:
+        max_connections: 300
+
+  DatabaseCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      MasterUsername:
+        Ref: DatabaseUsername
+      MasterUserPassword:
+        Ref: DatabasePassword
+      BackupRetentionPeriod: 35
+      PreferredBackupWindow: 02:00-03:00
+      PreferredMaintenanceWindow: mon:03:00-mon:04:00
+      DBSubnetGroupName:
+        Ref: DatabaseSubnetGroup
+      VpcSecurityGroupIds:
+        - Ref: DatabaseSecurityGroup
+      DBClusterParameterGroupName: default.aurora-mysql5.7
+
+  # Create two instances, one for failover purposes
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-mysql
+      DBClusterIdentifier:
+        Ref: DatabaseCluster
+      DBInstanceClass:
+        Ref: DatabaseInstanceType
+      DBSubnetGroupName:
+        Ref: DatabaseSubnetGroup  
+      DBParameterGroupName: !Ref ParameterGroup
+      PubliclyAccessible: false
+      DBInstanceIdentifier: !Ref DatabaseName
+
+  DatabaseReplicaInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-mysql
+      DBClusterIdentifier:
+        Ref: DatabaseCluster
+      DBInstanceClass:
+        Ref: DatabaseInstanceType
+      DBSubnetGroupName:
+        Ref: DatabaseSubnetGroup  
+      DBParameterGroupName: !Ref ParameterGroup
+      PubliclyAccessible: false
+      DBInstanceIdentifier: !Join ['-', [!Ref 'DatabaseName', 'replica']]      
+
+  DatabaseCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Primary database CPU utilization is over 80%.
+      Namespace: AWS/RDS
+      MetricName: CPUUtilization
+      Unit: Percent
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value:
+            Ref: DatabaseInstance
+      AlarmActions:
+        - Ref: StackAlarmTopic
+      InsufficientDataActions:
+        - Ref: StackAlarmTopic
+
+  DatabaseMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Primary database freeable memory is under 700MB.
+      Namespace: AWS/RDS
+      MetricName: FreeableMemory
+      Unit: Bytes
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 700000000
+      ComparisonOperator: LessThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value:
+            Ref: DatabaseInstance
+      AlarmActions:
+        - !Ref StackAlarmTopic
+      InsufficientDataActions:
+        - !Ref StackAlarmTopic
+      OKActions: 
+        - !Ref StackAlarmTopic
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      VpcId:
+        Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'VPCId']]
+      GroupDescription: Access to database
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 3306
+          ToPort: 3306
+          IpProtocol: tcp
+      Tags: 
+        - Key: Name
+          Value: !Sub ${DatabaseName}-security-group
+
+Outputs:
+  DatabaseEndpoint: 
+    Description: The database endpoint
+    Value: !GetAtt DatabaseCluster.Endpoint.Address
+  
+  DatabasePort:
+    Description: The database port
+    Value: !GetAtt DatabaseCluster.Endpoint.Port
