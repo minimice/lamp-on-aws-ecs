@@ -1,0 +1,23 @@
+References
+
+https://www.cloudreach.com/en/insights/blog/containerize-this-how-to-use-php-apache-mysql-within-docker-containers/
+https://github.com/awslabs/aws-cloudformation-templates/tree/master/aws/services/ECS
+https://d0.awsstatic.com/whitepapers/microservices-on-aws.pdf
+https://hub.docker.com/r/minimice/php-app
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-multiaz
+https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.html
+https://wa.aws.amazon.com/wat.question.SEC_10.en.html
+https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html
+https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html
+https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.CrossRegion.html
+https://www.axsar.com/blog/building-multi-region-active-active-architecture-in-aws-using-containerised-micro-services/
+
+
+# aws --region us-east-1 cloudformation create-stack --stack-name ecs-networking --template-body file://ecs-networking.yml --capabilities CAPABILITY_NAMED_IAM
+# aws --region us-east-1 cloudformation update-stack --stack-name ecs-networking --template-body file://ecs-networking.yml --capabilities CAPABILITY_NAMED_IAM
+
+# aws --region us-east-1 cloudformation create-stack --stack-name ecs-public-service --template-body file://ecs-public-service.yml --capabilities CAPABILITY_NAMED_IAM
+# aws --region us-east-1 cloudformation update-stack --stack-name ecs-public-service --template-body file://ecs-public-service.yml --capabilities CAPABILITY_NAMED_IAM
+
+# aws --region us-east-1 cloudformation create-stack --stack-name rds-aurora-mysql --template-body file://rds-aurora-mysql.yml --capabilities CAPABILITY_NAMED_IAM
+# aws --region us-east-1 cloudformation update-stack --stack-name rds-aurora-mysql --template-body file://rds-aurora-mysql.yml --capabilities CAPABILITY_NAMED_IAM
