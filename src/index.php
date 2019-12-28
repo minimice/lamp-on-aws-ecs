@@ -1,3 +1,7 @@
+<html>
+<head><title>Moocaholic</title></head>
+<body>
+
 <h1>Hello Moocaholic!</h1>
 
 <h3>
@@ -18,22 +22,26 @@ Refresh the page to switch to another container instance
 Learn or learn not, there is no try ~ Baby yoda
 </h3>
 
-<p>Demo created by <a href="https://github.com/minimice">Lim, Chooi Guan</a></p>
-
-<!--
-<h4>Attempting MySQL connection from php...</h4>
-<h3>
+<p>
 <?php
-$host = 'mysql';
-$user = 'root';
-$pass = 'rootpassword';
-$conn = new mysqli($host, $user, $pass);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-} else {
-    echo "Connected to MySQL successfully!";
+$host = 'rds-aurora-mysql-databasecluster-17x8veja4c9jm.cluster-fake1234.us-east-1.rds.amazonaws.com';
+$user = 'yoda';
+$pass = 'fakepwd';
+
+try {
+  $conn = new mysqli($host, $user, $pass);
+  if ($conn->connect_error) {
+    echo "Connection to Aurora MySQL cluster did not succeed.";
+  } else {
+    echo "Connected to Aurora MySQL cluster succeeded!";
+  }
+} catch (Exception $e) {
+    echo 'Unable to connect, ensure the database is accessible';
 }
 ?>
-</h3>
--->
+</p>
 
+<p>Demo created by <a href="https://github.com/minimice">Lim, Chooi Guan</a></p>
+
+</body>
+</html>
