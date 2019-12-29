@@ -8,7 +8,7 @@ Author: [Lim Chooi Guan](https://www.linkedin.com/in/cgl88/)
 
 ## Instructions
 
-To deploy the application, clone this repo, change directory to Cloudformation, then run the following in order from the terminal:
+To deploy the application you will need the AWS CLI installed.  Then clone this repo, change directory to the cloudformation directory, and run the following in order from the terminal:
 
 ```
 aws --region us-east-1 cloudformation create-stack --stack-name ecs-networking --template-body file://ecs-networking.yml --capabilities CAPABILITY_NAMED_IAM
