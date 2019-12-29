@@ -187,7 +187,10 @@ Resources:
             !Join [':', [!Ref 'StackName', 'VPCId']]
       GroupDescription: Access to database
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
+        - SourceSecurityGroupId:
+            Fn::ImportValue:
+              !Join [':', [!Ref 'StackName', 'EcsHostSecurityGroup']]
+          Description: Only accept traffic from a container in the container host security group
           FromPort: 3306
           ToPort: 3306
           IpProtocol: tcp

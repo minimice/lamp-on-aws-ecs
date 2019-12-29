@@ -292,7 +292,7 @@ Resources:
       Description: Ingress from other containers in the same security group
       GroupId: !Ref 'EcsHostSecurityGroup'
       IpProtocol: -1
-      SourceSecurityGroupId: !Ref 'EcsHostSecurityGroup'
+      SourceSecurityGroupId: !Ref 'EcsHostSecurityGroup'   
 
   # Autoscaling group. This launches the actual EC2 instances that will register
   # themselves as members of the cluster, and run the docker containers.
