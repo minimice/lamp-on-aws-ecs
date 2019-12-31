@@ -21,3 +21,9 @@ https://www.axsar.com/blog/building-multi-region-active-active-architecture-in-a
 
 # aws --region us-east-1 cloudformation create-stack --stack-name rds-aurora-mysql --template-body file://rds-aurora-mysql.yml --capabilities CAPABILITY_NAMED_IAM
 # aws --region us-east-1 cloudformation update-stack --stack-name rds-aurora-mysql --template-body file://rds-aurora-mysql.yml --capabilities CAPABILITY_NAMED_IAM
+
+# To build docker image
+docker build -t minimice/php-app .
+
+# To push docker image
+docker push minimice/php-app
