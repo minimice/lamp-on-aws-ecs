@@ -1,0 +1,23 @@
+
+-- Questions raised during presentation
+
+Q: Can the load balancer be placed in the private subnet?
+A: Yes it can, since it does not need a public dns.
+
+Q: RTO and RPO
+A: For RDS Single-AZ, this can vary from minutes to hours with regards to RTO.  RPO for RDS Single-AZ is typically 5 minutes.
+See https://aws.amazon.com/blogs/database/amazon-rds-under-the-hood-single-az-instance-recovery/  The RDS SLA currently specified a 99.95% uptime, at https://aws.amazon.com/rds/sla/
+RTO for the current architecture will only take a few minutes to deploy in another region, this can be set to virtually 0 by having an active-active deployment.
+
+Q: RDS read replica to another region, e.g. Japan is this sync or asynchronous?
+A: This is asychronous.  See https://aws.amazon.com/rds/details/read-replicas/
+
+Q: Does code commit work with IAM roles?
+A: Yes it does!  See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_ssh-keys.html
+
+Q: How does AWS mitigate against DDoS attacks?
+A: I mentioned the ALB before, it also supports AWS WAF, and AWS shield.  A list of best practises is available at  https://aws.amazon.com/answers/networking/aws-ddos-attack-mitigation/ and more information about AWS shield at https://aws.amazon.com/shield/
+
+Q: When to use Amazon Aurora vs RDS MySQL?
+A: A discussion of pros and cons can be found here
+https://www.percona.com/blog/2018/07/17/when-should-i-use-amazon-aurora-and-when-should-i-use-rds-mysql/
