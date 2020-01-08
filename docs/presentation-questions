@@ -2,7 +2,8 @@
 -- Questions raised during presentation
 
 Q: Can the load balancer be placed in the private subnet?
-A: No, the internet facing ALB must be placed in a public subnet. See https://stackoverflow.com/questions/54871524/elastic-load-balancer-pointing-at-private-subnet
+A: No, the internet facing ALB must be placed in a public subnet as it serves as the entry point when the client initiates a connection through the internet. See https://stackoverflow.com/questions/54871524/elastic-load-balancer-pointing-at-private-subnet
+and https://aws.amazon.com/premiumsupport/knowledge-center/public-load-balancer-private-ec2/
 
 Q: RTO and RPO
 A: For RDS Single-AZ, this can vary from minutes to hours with regards to RTO.  RPO for RDS Single-AZ is typically 5 minutes.
