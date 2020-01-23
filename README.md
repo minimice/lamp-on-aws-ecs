@@ -1,4 +1,4 @@
-# aws-assignment
+# LAMP on AWS ECS example
 Demo showing example of a containerised LAMP application with high availability deployed on AWS.
 
 ![Containers on AWS! Awesome!](https://raw.githubusercontent.com/minimice/aws-assignment/master/demo/demo.gif)
